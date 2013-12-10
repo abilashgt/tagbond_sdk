@@ -14,8 +14,13 @@ $redirectUri = 'your-redirect-uri';
 $tagbond = new Tagbond;
 $tagbond->setClient($clientId,$clientSecret);
 $tagbond->setRedirect($redirectUri);
-
 //$tagbond->setScopes(array('scope1','scope2'));
+
+//checking redirect uri
+if(Tagbond::currentUrl() != $redirectUri){
+	echo "Incorrect redirect uri. Please put this file on the right path where your redirect uri points";
+	exit;
+}
 
 if(!$tagbond->isLoggedIn()){
 	$url = $tagbond->getLoginUrl();
@@ -35,10 +40,19 @@ else{
 		echo '<pre>';
 		print_r($userDetails);
 		echo '</pre>';
-		exit();
+		exit;
 	}
 	else{
 		exit('error:no_token');
 	}
 }
 ?>
+
+<html>
+<head><title>Tagbond SDK</title></head>
+<body>
+	<div>
+		<input type="submit" value="Login with Tagbond" onClick="parent.location='<?php echo $url ?>'">
+	</div>
+</body>
+</html>
