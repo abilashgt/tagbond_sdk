@@ -1,7 +1,7 @@
 <?php
 class Tagbond
 {
-	const url = 'http://api.tagbond.local';
+	const url = 'https://api.tagbond.com';
 
 	private $client_id;
 	private $client_secret;
