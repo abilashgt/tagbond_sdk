@@ -57,6 +57,117 @@ class Tagbond
 		return false;
 	}
 
+	public function setSession($token){
+		if($token){
+			$this->access_token = $token;
+			$_SESSION['tagbond_access_token'] = $token;
+			return true;
+		}
+
+		return false;
+	}
+
+	public function getSession(){
+		$token = $_SESSION['tagbond_access_token'];
+		if($token){
+			$this->access_token = $token;
+			return $token;
+		}
+
+		return false;
+	}
+
+	public function getAccessToken(){
+		if($token = $this->access_token){
+			return $token;
+		}
+		else if($token = $this->getSession()){
+			return $token;
+		}
+		else if($_GET['code']){
+			$post = array(
+				'client_id'=>$this->client_id,
+				'client_secret'=>$this->client_secret,
+				'redirect_uri'=>$this->redirect_uri,
+				'grant_type'=>'authorization_code',
+				'code'=>$_GET['code']
+				);
+
+			$result = $this->postCurl('/oauth/accesstoken', $post);
+
+			if(is_array($result)){
+				$token = $result['result']['access_token'];
+
+				if($this->setSession($token)){
+					return true;
+				}
+				else{
+					//throw exception
+					exit("error:unable_to_set_cookie");
+				}
+			}
+		}
+
+		if($token){
+			return $token;
+		}
+
+		return false;
+	}
+
+	public function postCurl($url, $post = array()){
+		//post
+		$postString = '';
+		foreach($post as $key=>$value) { $postString .= $key.'='.$value.'&'; }
+		rtrim($postString, '&');
+		//echo $postString; exit;
+
+		//curl open connection
+		$session = curl_init();
+		//curl proxy
+		if($this->proxy){
+			curl_setopt($session, CURLOPT_PROXY, $this->proxy);
+		}
+		//curl url
+		curl_setopt($session, CURLOPT_URL, $this->base_url.'/'.$url);
+		//curl post
+		curl_setopt($session, CURLOPT_POST, count($post));
+		curl_setopt($session, CURLOPT_POSTFIELDS, $postString);
+		curl_setopt($session, CURLOPT_RETURNTRANSFER, True);
+
+		//curl_setopt($session,CURLOPT_HTTPHEADER,array(
+		//	'Authorization'=>'Bearer '.''
+		//	));
+
+		//curl execute
+		$content = curl_exec($session);
+
+		// Check if any error occured
+		$response = curl_getinfo($session);
+		if($response['http_code'] != 200) {
+			//throw exeption
+			echo "Got negative response from server, http code: ".
+			$response['http_code'] . "\n";
+			exit;
+		}
+
+		//curl close connection
+		curl_close($session);
+
+		echo $result;
+		//output
+		return $result = json_decode($content, true);
+	}
+
+
+	public function isLoggedIn(){
+		if($token = $this->getAccessToken()){
+			return true;
+		}
+
+		return false;
+	}
+
 	public function getLoginUrl(){
 		$url = $this->base_url.'/oauth?';
 		$url.= 'client_id='.$this->client_id;
@@ -67,149 +178,11 @@ class Tagbond
 		return $url;
 	}
 
-	public function setCookie(){
-		if($_GET['code']){
-			//open connection
-			$session = curl_init();
-			if($this->proxy){
-				curl_setopt($session, CURLOPT_PROXY, $this->proxy);
-			}
-			curl_setopt($session, CURLOPT_URL, $this->base_url.'/oauth/accesstoken');
-			//curl_setopt($session,CURLOPT_HTTPHEADER,array(
-			//	'Authorization'=>'Bearer '.''
-			//	));
-			$post = array(
-				'client_id'=>$this->client_id,
-				'client_secret'=>$this->client_secret,
-				'redirect_uri'=>$this->redirect_uri,
-				'grant_type'=>'authorization_code',
-				'code'=>$_GET['code']
-				);
-
-			//post
-			$postString = '';
-			foreach($post as $key=>$value) { $postString .= $key.'='.$value.'&'; }
-			rtrim($postString, '&');
-
-			curl_setopt($session, CURLOPT_POST, count($post));
-			curl_setopt($session, CURLOPT_POSTFIELDS, $postString);
-			curl_setopt($session, CURLOPT_RETURNTRANSFER, True);
-
-			//execute post
-			$content = curl_exec($session);
-
-			// Check if any error occured
-			$response = curl_getinfo($session);
-			if($response['http_code'] != 200) {
-				echo "Got negative response from server, http code: ".
-				$response['http_code'] . "\n";
-				exit;
-			}
-
-			//close connection
-			curl_close($session);
-
-			//output
-			$result = json_decode($content, true);
-			//print_r($result); exit;
-			if(is_array($result)){
-				$token = $result['result']['access_token'];
-				if($token){
-					$this->access_token = $token;
-					setcookie("tagbond_access_token", $token);
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	public function getCookie(){
-		$token = $_COOKIE['tagbond_access_token'];
-		if($token){
-			return $token;
-		}
-
-		return false;
-	}
-
-	public function getAccessToken(){
-		if($this->access_token){
-			$token = $this->access_token;
-		}
-		else{
-			$token = $this->getCookie();
-			$this->access_token = $token;
-		}
-
-		if($token){
-			return $token;
-		}
-
-		return false;
-	}
-
-	public function isLoggedIn(){
-		if($token = $this->getAccessToken()){
-			return true;
-		}
-		else if($_GET['code']){
-			if($this->setCookie()){
-				return true;
-			}
-			else{
-				//throw exception
-				exit("error:unable_to_set_cookie");
-			}
-		}
-
-		return false;
-	}
-
 	public function getData($url, $post = array()){
 		if($token = $this->getAccessToken()){
 			$post['access_token'] = $token;
-
-			//post
-			$postString = '';
-			foreach($post as $key=>$value) { $postString .= $key.'='.$value.'&'; }
-			rtrim($postString, '&');
-			//echo $postString; exit;
-
-			//curl open connection
-			$session = curl_init();
-			//curl proxy
-			if($this->proxy){
-				curl_setopt($session, CURLOPT_PROXY, $this->proxy);
-			}
-			//curl url
-			curl_setopt($session, CURLOPT_URL, $this->base_url.'/'.$url);
-			//curl post
-			curl_setopt($session, CURLOPT_POST, count($post));
-			curl_setopt($session, CURLOPT_POSTFIELDS, $postString);
-			curl_setopt($session, CURLOPT_RETURNTRANSFER, True);
-
-			//curl execute
-			$content = curl_exec($session);
-
-			// Check if any error occured
-			$response = curl_getinfo($session);
-			if($response['http_code'] != 200) {
-				//throw exeption
-				echo "Got negative response from server, http code: ".
-				$response['http_code'] . "\n";
-				exit;
-			}
-
-			//curl close connection
-			curl_close($session);
-
-			//output
-			return $result = json_decode($content, true);
+			return $this->postCurl($url, $post);
 		}
-
-		return false;
 	}
 
 	public function getUser(){
