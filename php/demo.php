@@ -13,7 +13,7 @@ $tagbond = new Tagbond;
 $tagbond->setClient($clientId,$clientSecret);
 $tagbond->setRedirect($redirectUri);
 
-$tagbond->setScopes(array('user.settings','user.contacts'));
+//$tagbond->setScopes(array('scope1','scope2'));
 
 if(!$tagbond->isLoggedIn()){
 	$url = $tagbond->getLoginUrl();
@@ -26,8 +26,16 @@ if(!$tagbond->isLoggedIn()){
 	}
 }
 else{
-	echo $userDetails = $tagbond->getUser();
-	if(!$token){
+	$userDetails = $tagbond->getData('user/profile');
+	//$userDetails = $tagbond->getUser();
+
+	if($userDetails){
+		echo '<pre>';
+		print_r($userDetails);
+		echo '</pre>';
+		exit();
+	}
+	else{
 		exit('error:no_token');
 	}
 }

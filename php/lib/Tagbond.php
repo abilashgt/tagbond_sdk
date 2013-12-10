@@ -1,8 +1,7 @@
 <?php
 class Tagbond
 {
-	const url = 'http://api.tagbond.local';
-
+	private $base_url;
 	private $client_id;
 	private $client_secret;
 	private $redirect_uri;
@@ -14,6 +13,7 @@ class Tagbond
 	private $proxy;
 
 	function __construct() {
+		$this->base_url = 'https://api.tagbond.com';
 		$this->response_type = 'code';
 	}
 
@@ -21,17 +21,12 @@ class Tagbond
 		//destructor
 	}
 
-	public static function pre($obj, $exit = false) {
-		echo "<pre>";
-		print_r($obj);
-		echo "</pre>";
-		if ($exit == true) {
-			exit();
-		}
-	}
-
 	public function setProxy($proxy){
 		$this->proxy = $proxy;
+	}
+
+	public function setBaseUrl($url){
+		$this->base_url = $url;
 	}
 
 	public function setClient($id, $secret){
@@ -63,7 +58,7 @@ class Tagbond
 	}
 
 	public function getLoginUrl(){
-		$url = self::url.'/oauth?';
+		$url = $this->base_url.'/oauth?';
 		$url.= 'client_id='.$this->client_id;
 		$url.= '&redirect_uri='.$this->redirect_uri;
 		$url.= '&response_type='.$this->response_type;
@@ -79,7 +74,7 @@ class Tagbond
 			if($this->proxy){
 				curl_setopt($session, CURLOPT_PROXY, $this->proxy);
 			}
-			curl_setopt($session, CURLOPT_URL, self::url.'/oauth/accesstoken');
+			curl_setopt($session, CURLOPT_URL, $this->base_url.'/oauth/accesstoken');
 			//curl_setopt($session,CURLOPT_HTTPHEADER,array(
 			//	'Authorization'=>'Bearer '.''
 			//	));
@@ -121,7 +116,7 @@ class Tagbond
 				$token = $result['result']['access_token'];
 				if($token){
 					$this->access_token = $token;
-					setcookie("access_token", $token);
+					setcookie("tagbond_access_token", $token);
 					return true;
 				}
 			}
@@ -131,7 +126,7 @@ class Tagbond
 	}
 
 	public function getCookie(){
-		$token = $_COOKIE['access_token'];
+		$token = $_COOKIE['tagbond_access_token'];
 		if($token){
 			return $token;
 		}
@@ -172,51 +167,53 @@ class Tagbond
 		return false;
 	}
 
-	public function getUser(){
+	public function getData($url, $post = array()){
 		if($token = $this->getAccessToken()){
-			//open connection
-			$session = curl_init();
-			if($this->proxy){
-				curl_setopt($session, CURLOPT_PROXY, $this->proxy);
-			}
-			curl_setopt($session, CURLOPT_URL, self::url.'/user/profile');
-
-			$post = array('access_token'=>$token);
+			$post['access_token'] = $token;
 
 			//post
 			$postString = '';
 			foreach($post as $key=>$value) { $postString .= $key.'='.$value.'&'; }
 			rtrim($postString, '&');
-			//print_r($postString); exit;
+			//echo $postString; exit;
 
+			//curl open connection
+			$session = curl_init();
+			//curl proxy
+			if($this->proxy){
+				curl_setopt($session, CURLOPT_PROXY, $this->proxy);
+			}
+			//curl url
+			curl_setopt($session, CURLOPT_URL, $this->base_url.'/'.$url);
+			//curl post
 			curl_setopt($session, CURLOPT_POST, count($post));
 			curl_setopt($session, CURLOPT_POSTFIELDS, $postString);
 			curl_setopt($session, CURLOPT_RETURNTRANSFER, True);
 
-			//execute post
+			//curl execute
 			$content = curl_exec($session);
 
 			// Check if any error occured
 			$response = curl_getinfo($session);
 			if($response['http_code'] != 200) {
+				//throw exeption
 				echo "Got negative response from server, http code: ".
 				$response['http_code'] . "\n";
 				exit;
 			}
 
-			//execute post
-			$content = curl_exec($session);
-
-			//close connection
+			//curl close connection
 			curl_close($session);
 
 			//output
-			$result = json_decode($content, true);
-
-			self::pre($content, true);
+			return $result = json_decode($content, true);
 		}
 
 		return false;
+	}
+
+	public function getUser(){
+		return $this->getData('user/profile');
 	}
 }
 ?>
