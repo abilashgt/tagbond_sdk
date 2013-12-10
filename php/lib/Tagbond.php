@@ -1,7 +1,7 @@
 <?php
 class Tagbond
 {
-	const url = 'https://api.tagbond.com';
+	const url = 'http://api.tagbond.local';
 
 	private $client_id;
 	private $client_secret;
@@ -10,6 +10,8 @@ class Tagbond
 	private $response_type;
 
 	private $access_token;
+
+	private $proxy;
 
 	function __construct() {
 		$this->response_type = 'code';
@@ -28,8 +30,8 @@ class Tagbond
 		}
 	}
 
-	public function setProxy(){
-
+	public function setProxy($proxy){
+		$this->proxy = $proxy;
 	}
 
 	public function setClient($id, $secret){
@@ -74,6 +76,9 @@ class Tagbond
 		if($_GET['code']){
 			//open connection
 			$session = curl_init();
+			if($this->proxy){
+				curl_setopt($session, CURLOPT_PROXY, $this->proxy);
+			}
 			curl_setopt($session, CURLOPT_URL, self::url.'/oauth/accesstoken');
 			//curl_setopt($session,CURLOPT_HTTPHEADER,array(
 			//	'Authorization'=>'Bearer '.''
@@ -171,6 +176,9 @@ class Tagbond
 		if($token = $this->getAccessToken()){
 			//open connection
 			$session = curl_init();
+			if($this->proxy){
+				curl_setopt($session, CURLOPT_PROXY, $this->proxy);
+			}
 			curl_setopt($session, CURLOPT_URL, self::url.'/user/profile');
 
 			$post = array('access_token'=>$token);
