@@ -87,7 +87,7 @@ $tagbond->setScopes($scopes);
 	var hash = url.substring(url.indexOf("#")+1);
 	if(url.indexOf("#")!=-1){
 		var implicit = document.getElementById('implicit');
-		implicit.innerHTML = "<b>Access Token</b> recieved from <b>Implicit</b> login is <b>"+ hash +"</b>";
+		implicit.innerHTML = "<b>Access Token</b>: "+ hash +"</b>";
 		alert("Access Token recieved");
 	}
 	</script>
