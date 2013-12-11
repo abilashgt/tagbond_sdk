@@ -11,6 +11,7 @@ class Tagbond
 	private $access_token;
 
 	private $proxy;
+	private $sessionName = 'tagbond_access_token';
 
 	function __construct() {
 		$this->base_url = 'https://api.tagbond.com';
@@ -60,7 +61,7 @@ class Tagbond
 	public function setSession($token){
 		if($token){
 			$this->access_token = $token;
-			$_SESSION['tagbond_access_token'] = $token;
+			$_SESSION[$this->sessionName] = $token;
 			return true;
 		}
 
@@ -68,7 +69,7 @@ class Tagbond
 	}
 
 	public function getSession(){
-		$token = $_SESSION['tagbond_access_token'];
+		$token = $_SESSION[$this->sessionName];
 		if($token){
 			$this->access_token = $token;
 			return $token;
@@ -120,7 +121,6 @@ class Tagbond
 		$postString = '';
 		foreach($post as $key=>$value) { $postString .= $key.'='.$value.'&'; }
 		rtrim($postString, '&');
-		//echo $postString; exit;
 
 		//curl open connection
 		$session = curl_init();
@@ -176,6 +176,27 @@ class Tagbond
 		$url.= '&scope='.$this->scopes;
 
 		return $url;
+	}
+
+	public function getImplicitLoginUrl(){
+		$url = $this->base_url.'/oauth?';
+		$url.= 'client_id='.$this->client_id;
+		$url.= '&redirect_uri='.$this->redirect_uri;
+		$url.= '&response_type=token';
+		$url.= '&scope='.$this->scopes;
+
+		return $url;
+	}
+
+	public function getClient(){
+		$post = array(
+			'client_id'=>$this->client_id,
+			'client_secret'=>$this->client_secret,
+			'grant_type'=>'client_credentials',
+			'redirect_uri'=>$this->redirect_uri,
+			);
+		$result = $this->postCurl('oauth/accesstoken', $post);
+		return $result;
 	}
 
 	public function getData($url, $post = array()){
