@@ -34,15 +34,16 @@ $tagbond->setScopes($scopes);
 	}
 	?>
 	<div>
-		<div>
-			For normal user's to login securely for your community<br />
+		<div style="border:1px solid;">
+			<b>User Login (secure) </b>: User Login (authorization code)<br />
 			<?php 
 			if(!$tagbond->isLoggedIn()){ ?>
 				<input type="submit" value="Login with Tagbond" onClick="parent.location='<?php echo $tagbond->getLoginUrl() ?>'">
 			<?php
 			} 
 			else { ?>
-				<div>
+				<div style="border-top:1px solid;">
+					<b>Result Array:</b>
 					<?php
 					$userDetails = $tagbond->getData('user/profile');
 					//$userDetails = $tagbond->getUser();
@@ -64,42 +65,20 @@ $tagbond->setScopes($scopes);
 			<br />
 			<br />
 		</div>
+		<div style="border:1px solid;">
+			<b>User Login (Insecure)</b>: User Login for Javascript based applications (implicit)
+			<div id="implicit" style="border-top:1px solid;">
+				 <br />
+				<a href="<?php echo $tagbond->getImplicitLoginUrl() ?>"><b>Login URL</b></a>
+			</div>
+		</div>
 		<div>
+			<br />
+			<br />
+		</div>
+		<div style="border:1px solid;">
 			To login as the your community itself to manage the community<br />
-			<?php
-			if(!$_GET['client']){
-				?>
-				<input type="submit" value="Community Login" onClick="parent.location='<?php echo $url ?>'">
-				<?php
-			}
-			else{
-				
-				?>
-				<div>
-					<?php
-					$clientDetails = $tagbond->getClient();
-
-					if($clientDetails){
-						echo '<pre>';
-						print_r($clientDetails);
-						echo '</pre>';
-					}
-					else{
-						exit('error:no_token');
-					}
-					?>
-				</div>
-			<?php
-			}
-			?>
-		</div>
-		<div>
-			<br />
-			<br />
-		</div>
-		<div id="implicit">
-			User Login Url for Javascript based applications (insecure login) <br />
-			<a href="<?php echo $tagbond->getImplicitLoginUrl() ?>"><b>Login URL</b></a>
+			<input type="submit" value="Community Login" onClick="parent.location='<?php echo $currentUrl ?>/../community.php?client=true'">
 		</div>
 	</div>
 

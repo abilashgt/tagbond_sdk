@@ -188,7 +188,7 @@ class Tagbond
 		return $url;
 	}
 
-	public function getClient(){
+	public function getClientCommunity(){
 		$post = array(
 			'client_id'=>$this->client_id,
 			'client_secret'=>$this->client_secret,
@@ -196,6 +196,7 @@ class Tagbond
 			'redirect_uri'=>$this->redirect_uri,
 			);
 		$result = $this->postCurl('oauth/accesstoken', $post);
+		$this->setSession($result['result']['access_token']);
 		return $result;
 	}
 
@@ -208,6 +209,14 @@ class Tagbond
 
 	public function getUser(){
 		return $this->getData('user/profile');
+	}
+
+	public function getPerspective(){
+		return $this->getData('perspective');
+	}
+
+	public function getCommunity(){
+		return $this->getData('community/details');
 	}
 
 	public static function currentUrl() {
