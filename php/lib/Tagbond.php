@@ -41,6 +41,15 @@ class Tagbond
 		return true;
 	}
 
+	public function checkRedirect(){
+		$currentUrl = self::currentUrl();
+		if(strpos($currentUrl, $this->redirect_uri) === false){
+			return false;
+		}
+
+		return true;
+	}
+
 	public function setResponseType($type){
 		$this->response_type = $type;
 		return true;

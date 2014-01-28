@@ -13,11 +13,6 @@ else{
 	$config=dirname(__FILE__).'/config.php';
 }
 require $config;
-
-//setting the configurations
-$tagbond->setClient($clientId,$clientSecret);
-$tagbond->setRedirect($redirectUri);
-$tagbond->setScopes($scopes);
 ?>
 
 <html>
@@ -26,7 +21,7 @@ $tagbond->setScopes($scopes);
 	<?php
 	//testing the enronment
 	$currentUrl = Tagbond::currentUrl();
-	if(strpos($currentUrl, $redirectUri) === false){
+	if(!$tagbond->checkRedirect()){
 		echo "Error: Incorrect redirect uri. Please put the files on the right location where your <b>Redirect Uri</b> is set.";
 		echo "<br /><br />";
 		echo "Hint: Your server URL is <b>'$currentUrl'</b>. The 'Redirect Uri' set in the configuration is <b>'$redirectUri'</b>.";
