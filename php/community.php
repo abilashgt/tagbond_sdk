@@ -14,11 +14,6 @@ else{
 }
 require $config;
 
-//setting the configurations
-$tagbond->setClient($clientId,$clientSecret);
-$tagbond->setRedirect($redirectUri);
-$tagbond->setScopes($scopes);
-
 $currentUrl = Tagbond::currentUrl();
 $currentUrl = explode('?', $currentUrl)[0];
 ?>
