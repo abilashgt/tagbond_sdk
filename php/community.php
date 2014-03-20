@@ -15,7 +15,8 @@ else{
 require $config;
 
 $currentUrl = Tagbond::currentUrl();
-$currentUrl = explode('?', $currentUrl)[0];
+$currentUrl = explode('?', $currentUrl);
+$currentUrl = $currentUrl[0];
 ?>
 
 <html>
@@ -33,18 +34,36 @@ $currentUrl = explode('?', $currentUrl)[0];
 			}
 			else{ ?>
 				<div style="border-top:1px solid;">
-					<b>Result Array:</b>
 					<?php
+					//login
 					$tagbond->getClientCommunity();
+					?>
+					<br />
+					<b> Token: </b> <?php echo $tagbond->getAccessToken(); ?> <br>
+					<br />
+					<b> Community Details: </b>
+					<?php
+					try{
 					$details = $tagbond->getCommunity();
+					echo '<pre>';
+					print_r($details);
+					echo '</pre>';
+					}
+					catch(Exception $e){
+						exit('error fetching community details');
+					}
+					?>
 
-					if($details){
+					<?php
+					try{
+						$profile = $tagbond->getUser(5);
+						echo "Profile Details:<br />";
 						echo '<pre>';
-						print_r($details);
+						print_r($profile);
 						echo '</pre>';
 					}
-					else{
-						exit('error:no_token');
+					catch(Exception $e){
+						exit('error fetching profile details');
 					}
 					?>
 				</div>

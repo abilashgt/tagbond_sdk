@@ -223,8 +223,8 @@ class Tagbond
 		}
 	}
 
-	public function getUser(){
-		return $this->getData('user/profile');
+	public function getUser($id = NULL){
+		return $this->getData('user/profile/'.$id);
 	}
 
 	public function getPerspective(){
