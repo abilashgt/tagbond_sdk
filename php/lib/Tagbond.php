@@ -133,6 +133,7 @@ class Tagbond
 
 		//curl open connection
 		$session = curl_init();
+		curl_setopt($session, CURLOPT_FOLLOWLOCATION, true);
 		//curl proxy
 		if($this->proxy){
 			curl_setopt($session, CURLOPT_PROXY, $this->proxy);
@@ -153,19 +154,24 @@ class Tagbond
 
 		// Check if any error occured
 		$response = curl_getinfo($session);
-		if($response['http_code'] != 200) {
-			//throw exeption
-			echo "Got negative response from server, http code: ".
-			$response['http_code'] . "\n";
-			exit;
-		}
 
 		//curl close connection
 		curl_close($session);
 
-		echo $result;
-		//output
-		return $result = json_decode($content, true);
+		if($response['http_code'] == 200){
+			//output
+			return $result = json_decode($content, true);
+
+		}
+		else if($response['http_code'] == 403 || $response['http_code'] == 404){
+			//throw exeption
+			throw new Exception($content, $response['http_code']);
+		}
+
+		//throw exeption
+		$result = "Got negative response from server, http code: ".
+		$result.= $response['http_code'];
+		throw new Exception($result, $response['http_code']);
 	}
 
 
@@ -203,6 +209,7 @@ class Tagbond
 			'client_secret'=>$this->client_secret,
 			'grant_type'=>'client_credentials',
 			'redirect_uri'=>$this->redirect_uri,
+			'scope'=>$this->scopes,
 			);
 		$result = $this->postCurl('oauth/accesstoken', $post);
 		$this->setSession($result['result']['access_token']);
